@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.mlab as mlab
 from scipy.stats import norm
+plt.rc('text',usetex=True)
+#make these plots look dank
+plt.rc('font',family='serif')
 def linleastsquares_general(data,order): #many orders!
     n = len(data[0])
     x = data[0]
@@ -45,11 +48,12 @@ def func3c(n):
     fig = plt.figure()
     #plt.title('N='+str(n),size=40)
     ax1 = fig.add_subplot(131)
-    y,bins,patches	 = plt.hist(means,25,label=r'$\mu$ = '+str(meanofmeans)[0:6] +r' $\sigma$ = '+ str(stdmeans)[0:6])
-    print y, bins
-    errbar= np.sqrt(y)
-    for i in range(len(bins)-1):
-    	plt.errorbar(bins[i], y[i], yerr=errbar[i])
+    y,bins,patches	 = plt.hist(means,25,label=r'$\mu$ = '+str(meanofmeans)[0:6] +r' $\sigma$ = '+ str(stdmeans)[0:6])#,align='mid',facecolor='None')
+    #print y, bins
+    #errbar= np.sqrt(y)
+    #binw = (max(means)-min(means))/25.
+    #for i in range(len(bins)-1):
+    #	plt.errorbar(bins[i]+1/2.*binw, y[i], yerr=errbar[i],c='r')
     #errbar= []
     #for j in range(0,len(means),40):
     #	print j
@@ -60,7 +64,7 @@ def func3c(n):
     plt.xlabel('Means',size=40)
     plt.ylabel('Counts', size=40)
 
-    plt.tick_params(axis='both', which='major', labelsize=30)
+    plt.tick_params(axis='both', which='major', labelsize=20)
     plt.tick_params(axis='both', which='minor', labelsize=20) 
     #plt.legend(fontsize=15)
     #plt.show()
@@ -72,7 +76,7 @@ def func3c(n):
     plt.xlabel('Standard Deviations', size=40)
     #plt.ylabel('Coutns', size=40)
     #plt.legend(fontsize=15)
-    plt.tick_params(axis='both',which='major',labelsize=30)
+    plt.tick_params(axis='both',which='major',labelsize=20)
     plt.tick_params(axis='both', which='minor', labelsize=20)
     #plt.show()
     print meanofstd, stdstd
@@ -82,7 +86,7 @@ def func3c(n):
     plt.hist(errors,25,label=r'$\mu$ = ' +str(meanoferr) +r' $\sigma$= '+str(stderr)[0:6])
     plt.xlabel('Errors',size=40)
     #plt.ylabel('Counts',size=40)
-    plt.tick_params(axis='both', which='major', labelsize=30)
+    plt.tick_params(axis='both', which='major', labelsize=20)
     plt.tick_params(axis='both', which='minor', labelsize=20)
     #plt.legend(fontsize=15)
     print meanoferr, stderr
@@ -109,7 +113,7 @@ def func4b(n):
     meanofmeans = np.mean(means)
     stdmeans=np.std(means,ddof=1)
     fig = plt.figure()
-    ax1 = fig.add_subplot(131)
+    #ax1 = fig.add_subplot(131)
     plt.hist(means,30,label=r'$\mu$ = '+str(meanofmeans)[0:6] +r' $\sigma$ = '+ str(stdmeans)[0:6])
     plt.xlabel('Means',size=40)
     plt.ylabel('Counts', size=40)
@@ -121,13 +125,14 @@ def func4b(n):
     print meanofmeans, stdmeans
     meanofstd= np.mean(standdevs)
     stdstd = np.std(standdevs,ddof=1)
+    """
     ax2=fig.add_subplot(132)
     plt.hist(standdevs,30,label=r'$\mu$ = ' +str(meanofstd)[0:6]+r' $\sigma$= ' +str(stdmeans)[0:6])
     plt.xlabel('Standard Deviations', size=40)
     #plt.ylabel('Coutns', size=40)
     #plt.legend(fontsize=15)
     plt.tick_params(axis='both',which='major',labelsize=30)
-    plt.tick_parsms(axis='both', which='minor', labelsize=30)
+    plt.tick_params(axis='both', which='minor', labelsize=30)
     #plt.show()
     print meanofstd, stdstd
     ax3=fig.add_subplot(133) 
@@ -139,7 +144,7 @@ def func4b(n):
     plt.tick_params(axis='both', which='major', labelsize=30)
     plt.tick_params(axis='both', which='minor', labelsize=30)
     #plt.legend(fontsize=15)
-    print meanoferr, stderr
+    print meanoferr, stderr"""
     plt.show()
 data5 = np.loadtxt('peak.dat')
 def func5():
