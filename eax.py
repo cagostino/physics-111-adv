@@ -40,37 +40,50 @@ def func3c(n):
     #plt.hist(arrs,20)
     #plt.show()
     meanofmeans = np.mean(means)
+
     stdmeans=np.std(means,ddof=1)
     fig = plt.figure()
+    #plt.title('N='+str(n),size=40)
     ax1 = fig.add_subplot(131)
-    plt.hist(means,30,label=r'$\mu$ = '+str(meanofmeans)[0:6] +r' $\sigma$ = '+ str(stdmeans)[0:6])
+    y,bins,patches	 = plt.hist(means,25,label=r'$\mu$ = '+str(meanofmeans)[0:6] +r' $\sigma$ = '+ str(stdmeans)[0:6])
+    print y, bins
+    errbar= np.sqrt(y)
+    for i in range(len(bins)-1):
+    	plt.errorbar(bins[i], y[i], yerr=errbar[i])
+    #errbar= []
+    #for j in range(0,len(means),40):
+    #	print j
+    #	errbar.append(np.std(means[j:j*2],ddof=1))
+    #plt.errorbar(bins,y,yerr=errbar)
+
+    	#errbar.append(sum(means[j:])) 
     plt.xlabel('Means',size=40)
     plt.ylabel('Counts', size=40)
 
     plt.tick_params(axis='both', which='major', labelsize=30)
-    plt.tick_params(axis='both', which='minor', labelsize=30) 
+    plt.tick_params(axis='both', which='minor', labelsize=20) 
     #plt.legend(fontsize=15)
     #plt.show()
     print meanofmeans, stdmeans
     meanofstd= np.mean(standdevs)
     stdstd = np.std(standdevs,ddof=1)
     ax2=fig.add_subplot(132)
-    plt.hist(standdevs,30,label=r'$\mu$ = ' +str(meanofstd)[0:6]+r' $\sigma$= ' +str(stdmeans)[0:6])
+    plt.hist(standdevs,25,label=r'$\mu$ = ' +str(meanofstd)[0:6]+r' $\sigma$= ' +str(stdmeans)[0:6])
     plt.xlabel('Standard Deviations', size=40)
     #plt.ylabel('Coutns', size=40)
     #plt.legend(fontsize=15)
     plt.tick_params(axis='both',which='major',labelsize=30)
-    plt.tick_params(axis='both', which='minor', labelsize=30)
+    plt.tick_params(axis='both', which='minor', labelsize=20)
     #plt.show()
     print meanofstd, stdstd
     ax3=fig.add_subplot(133) 
     stderr = np.std(errors,ddof=1)
     meanoferr=np.mean(errors)
-    plt.hist(errors,30,label=r'$\mu$ = ' +str(meanoferr) +r' $\sigma$= '+str(stderr)[0:6])
+    plt.hist(errors,25,label=r'$\mu$ = ' +str(meanoferr) +r' $\sigma$= '+str(stderr)[0:6])
     plt.xlabel('Errors',size=40)
     #plt.ylabel('Counts',size=40)
     plt.tick_params(axis='both', which='major', labelsize=30)
-    plt.tick_params(axis='both', which='minor', labelsize=30)
+    plt.tick_params(axis='both', which='minor', labelsize=20)
     #plt.legend(fontsize=15)
     print meanoferr, stderr
     plt.show()
@@ -114,7 +127,7 @@ def func4b(n):
     #plt.ylabel('Coutns', size=40)
     #plt.legend(fontsize=15)
     plt.tick_params(axis='both',which='major',labelsize=30)
-    plt.tick_params(axis='both', which='minor', labelsize=30)
+    plt.tick_parsms(axis='both', which='minor', labelsize=30)
     #plt.show()
     print meanofstd, stdstd
     ax3=fig.add_subplot(133) 
