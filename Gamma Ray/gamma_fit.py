@@ -37,7 +37,6 @@ def findpeaks(spectrum,limit,width,typ,cent): #spectrum is 1 two-dimensional arr
 	peaks_y = []
 	for i in range(len(spec_x)-1): # -2 because itll b
 		if all(spec_y[i] > spec_y[i-width:i]) and all(spec_y[i] >spec_y[i+1:i+width]) and spec_y[i] > limit:
-			print spec_y[i]
 			peaks_x.append(np.where(spec_x == spec_x[i])[0])	
 			peaks_y.append(spec_y[i])
 	centroids= []	
@@ -46,9 +45,7 @@ def findpeaks(spectrum,limit,width,typ,cent): #spectrum is 1 two-dimensional arr
 		xran= spec_x[peak-5:peak+5]
 		
 		intens_ran= spec_y[peak-5:peak+5]
-		numer=[]
-		print xran
-		
+		numer=[]		
 		centroid = np.sum(np.array(xran*intens_ran))/np.sum(intens_ran)
 		
 		centroids.append(centroid)
@@ -63,7 +60,8 @@ def findpeaks(spectrum,limit,width,typ,cent): #spectrum is 1 two-dimensional arr
 
 		plt.tick_params(axis='both', which='major', labelsize=20)
 		plt.tick_params(axis='both', which='minor', labelsize=15)
-	
+		plt.show()
+
 	return np.array(centroids)
 
 
@@ -71,7 +69,6 @@ cent_Na = findpeaks(spec_Na,150,10,'Neon', False)
 cent_Cs = findpeaks(spec_Cs,500,10,'Cesium', False)
 cent_Co = findpeaks(spec_Co,1000,10,'Cobalt', False)
 
-plt.show()
 
 arr_cent = np.array([3.0613289748953973, 4.0025605026929982, 3.4341010115135413,
        3.9516175791641639, 4.0530974946344882])
@@ -203,9 +200,15 @@ def plot_cal():
 	plt.show()
 #plot_cal()
 
-def plot_inv_sq():
 
-	return
+def plot_inv_sq():
+	lstfil = ['02_03_2016_15_40_37.dat','02_03_2016_15_48_35.dat',
+	'02_03_2016_16_04_25.dat']#,'02_03_2016_16_24_24.dat']
+	specs= [np.transpose(np.loadtxt(i,skiprows=2, usecols=(0,1))) for i in lstfil ]
+	cent = [findpeaks(specs[i],100, 10,'Sodium-22',True) for i in range(len(lstfil))]
+	xr=[26.9, 53.8,  79.3]
+	return cent
+cen = plot_inv_sq()
 def plot_gain():
 	varied_voltages= lstfiles[31:73]
 	specs = [np.transpose(np.loadtxt(varied_voltages[i]
@@ -233,4 +236,4 @@ def plot_gain():
 	plt.show()
 	return peaks
 
-peakdat = plot_gain()
+#peakdat = plot_gain()
