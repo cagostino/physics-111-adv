@@ -68,7 +68,7 @@ def findpeaks(spectrum,limit,width,typ,cent): #spectrum is 1 two-dimensional arr
 cent_Na = findpeaks(spec_Na,150,10,'Neon', False)
 cent_Cs = findpeaks(spec_Cs,500,10,'Cesium', False)
 cent_Co = findpeaks(spec_Co,1000,10,'Cobalt', False)
-
+errors = [326.,2947.,372.,2560.,2569.]
 
 arr_cent = np.array([3.0613289748953973, 4.0025605026929982, 3.4341010115135413,
        3.9516175791641639, 4.0530974946344882])
@@ -115,7 +115,10 @@ quadfitpl = quad_0 + quad_1*ran + quad_2 * ran**2
 def plot_fits():
 	fig =plt.figure()
 	ax1= fig.add_subplot(121)
+	
 	plt.plot(arr_cent, arr_energies,'go',ms=10,label='Data')
+	for i in range(len(errors)-1):
+		plt.errorbar(arr_cent[i], arr_energies[i], xerr=1./np.sqrt(errors[i]))
 	plt.ylabel('Energy(MeV)', size=40)
 	plt.xlabel('Channel', size=40)
 	plt.tick_params(axis='both', which='major', labelsize=30)
@@ -124,6 +127,8 @@ def plot_fits():
 	plt.plot(ran, quadfitpl,'b', linewidth=3,label='Quad Fit')
 	plt.legend(loc=2, fontsize=20)
 	ax2=fig.add_subplot(122)
+	print 'linear residual mean, std = ', np.mean(linfit-arr_energies), np.std(linfit-arr_energies)
+	print 'quadratic residual mean, std = ', np.mean(quadfit-arr_energies), np.std(quadfit-arr_energies)
 	plt.plot(arr_cent, linfit-arr_energies,'ro', ms=10,label='Linear Residuals')
 	plt.plot(arr_cent, quadfit-arr_energies,'b*', ms=10, label='Quadratic Residuals')
 	plt.ylabel(r'$\Delta$ Energy(MeV)', size=40)
@@ -200,41 +205,67 @@ def plot_cal():
 	plt.show()
 #plot_cal()
 
-
+def fullwidth_half_max(peak, spec):
+	pix = spec[0]
+	intens = spec[1]
+	ran = np.arange(peak-15, peak+15)
+        full_wid = np.where(intens[ran] >= intens[peak]/2.)[0]
+	print intens[ran]
+	print intens[peak]
+	area = np.sum( intens[ran][full_wid]*(pix[1]-pix[0]))
+	print ran[full_wid]
+	width= pix[max(ran[full_wid])] - pix[min(ran[full_wid])] # prints the width of the peak
+	print 'width=', width
+	return width
 def plot_inv_sq():
 	lstfil = ['02_03_2016_15_40_37.dat','02_03_2016_15_48_35.dat',
 	'02_03_2016_16_04_25.dat']#,'02_03_2016_16_24_24.dat']
 	specs= [np.transpose(np.loadtxt(i,skiprows=2, usecols=(0,1))) for i in lstfil ]
-	cent = [findpeaks(specs[i],100, 10,'Sodium-22',True) for i in range(len(lstfil))]
+	cent = [findpeaks(specs[i],100, 10,'Sodium-22',False) for i in range(len(lstfil))]
+	peakval1 = max(specs[0][1])
+	peakval2 = max(specs[1][1])
+	peakval3 = max(specs[2][1])
 	xr=[26.9, 53.8,  79.3]
-	return cent
+
+	peaks = [peakval1,peakval2, peakval3]
+	errors = [1./np.sqrt(i) for i in peaks]
+
+	plt.plot(xr,peaks,'o')
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Distance [cm]',size=40)
+	plt.ylabel('Intensity [counts]',size=40)
+	for j in range(len(peaks)):
+		plt.errorbar(xr[j], peaks[j], yerr= errors[j])
+	plt.show()
+	return peakval1, peakval2, peakval3
+
 #cen = plot_inv_sq()
-def fullwidth_half_max(peak, spec):
-	pix = spec[0]
-	intens = spec[0]
-	ran = np.arange(peak-10, peak+10)
-        full_wid = np.where(intens[ran] >= intens[peak]/2.)
-	area = np.sum( intens[ran][full_wid]*(pix[1]-pix[0]))
-	return area
+
 def plot_gain():
 	varied_voltages= lstfiles[31:73]
 	specs = [np.transpose(np.loadtxt(varied_voltages[i]
 		,skiprows=2,usecols=(0,1))) for i in range(len(varied_voltages)-1)]
 	peaks = np.array([])
 	peak_areas= np.array([])
+	errors=np.array([])
+
 	for i in range(len(varied_voltages)-1):
-		print i
 		peak_spot = np.where(specs[i][1] == max(specs[i][1]))[0][0]
 		peak_x = specs[i][0][peak_spot]
 		area_underpeak= fullwidth_half_max(peak_spot,specs[i])
 		peak_areas = np.append(peak_areas, area_underpeak)
 		peaks = np.append(peaks, peak_x)
+		errors = np.append(errors, 1./np.sqrt(specs[i][1][peak_spot]))
 
 	xr= np.arange(400,810,10 )
 	xr =np.delete(xr, 6)
 	peaks = np.delete(peaks,6)
 	peak_areas=np.delete(peak_areas,6)
-	plt.plot(xr, peaks,'o', ms=10,label='Peak Position of Cesium-137')
+	plt.plot(xr, peaks,'o', ms=5,label='Peak Position of Cesium-137')
+    	
+	for i in range(len(peaks)-1):
+		plt.errorbar(xr[i], peaks[i], yerr=errors[i],c='r')
 	plt.tick_params(axis='both', which='major', labelsize=30)
 	plt.tick_params(axis='both', which='minor', labelsize=25)
 	plt.xlabel('Voltage',size=40)
@@ -260,7 +291,8 @@ def plot_gain():
 	plt.plot(xr[-24:],fit6,'--', label='Sextic')
 	plt.plot(xr[-24:],fit5,'--', label='Quintic')
 	plt.plot(xr[-24:],fit4,'--', label='Quartic')
-
+	for i in range(len(peaks[-21:])-1):
+		plt.errorbar(xr[-21:][i], peaks[-21:][i], yerr=errors[-21:][i],c='r')
 	plt.plot(xr[-24:],fit3,'--', label='Cubic')
 	plt.plot(xr[-24:],fit2,'--', label='Quadratic')
 	plt.tick_params(axis='both', which='major', labelsize=30)
@@ -272,10 +304,16 @@ def plot_gain():
 	plt.show()
 	#now for residuals!
 	resid6= fit6- peaks[-24:]
+	print 'resid6',np.mean(resid6), np.std(resid6,ddof=1)
+	
 	resid5= fit5- peaks[-24:]
+	print 'resid6',np.mean(resid5)	, np.std(resid5,ddof=1)
 	resid4= fit4- peaks[-24:]
+	print 'resid4',np.mean(resid4)	, np.std(resid4,ddof=1)
 	resid3= fit3- peaks[-24:]
+	print 'resid3',np.mean(resid3)	, np.std(resid3,ddof=1)
 	resid2= fit2- peaks[-24:]
+	print 'resid2',np.mean(resid2)	, np.std(resid2,ddof=1)
 	plt.plot(xr[-24:],resid6, 'o',ms=10,label='Sextic Residuals')
 	plt.plot(xr[-24:],resid5,'o',ms=10, label='Quintic Residuals')
 	plt.plot(xr[-24:],resid4,'o',ms=10, label='Quartic Residuals')
@@ -287,12 +325,9 @@ def plot_gain():
 	plt.ylabel('Peak Positional Residual',size=40)
 	plt.legend(loc=2, fontsize=25)
 	plt.show()
-
-	
-	'''
-
+	print len(peak_areas), len(xr)
 	plt.plot(xr, peak_areas)
-	print xr[-20]
+	
 	a6,a5,a4,a3,a2,a1,a0=np.polyfit(xr[-21:],peak_areas[-21:],6)
 	fit=a0+a1*xr[-21:]+a2*xr[-21:]**2+a3*xr[-21:]**3+a4*xr[-21:]+a4*xr[-21:]**4+a5*xr[-21:]**5+a6*xr[-21:]**6
 	print a0,a1,a2,a3,a4,a5,a6	
@@ -303,7 +338,21 @@ def plot_gain():
 	plt.xlabel('Voltage',size=40)
 	plt.ylabel('Peak Area at FWHM',size=40)
 	plt.show()
-	'''
+
 	return peaks,peak_areas
+def doublepeak():
+	spec = np.transpose(np.loadtxt('02_03_2016_13_40_42.dat',skiprows=3))
+	plt.plot(spec[0],spec[1],'g', label='Cesium-137') 
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Bin',size=40)
+	plt.ylabel('Intensity[counts]',size=40)
+	plt.xlim([0,2])
+	plt.legend(fontsize=25)
+	
+	plt.show()
+
+
+
 
 #peakdat = plot_gain()
