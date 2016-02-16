@@ -208,32 +208,102 @@ def plot_inv_sq():
 	cent = [findpeaks(specs[i],100, 10,'Sodium-22',True) for i in range(len(lstfil))]
 	xr=[26.9, 53.8,  79.3]
 	return cent
-cen = plot_inv_sq()
+#cen = plot_inv_sq()
+def fullwidth_half_max(peak, spec):
+	pix = spec[0]
+	intens = spec[0]
+	ran = np.arange(peak-10, peak+10)
+        full_wid = np.where(intens[ran] >= intens[peak]/2.)
+	area = np.sum( intens[ran][full_wid]*(pix[1]-pix[0]))
+	return area
 def plot_gain():
 	varied_voltages= lstfiles[31:73]
 	specs = [np.transpose(np.loadtxt(varied_voltages[i]
 		,skiprows=2,usecols=(0,1))) for i in range(len(varied_voltages)-1)]
 	peaks = np.array([])
+	peak_areas= np.array([])
 	for i in range(len(varied_voltages)-1):
 		print i
 		peak_spot = np.where(specs[i][1] == max(specs[i][1]))[0][0]
 		peak_x = specs[i][0][peak_spot]
+		area_underpeak= fullwidth_half_max(peak_spot,specs[i])
+		peak_areas = np.append(peak_areas, area_underpeak)
 		peaks = np.append(peaks, peak_x)
 
 	xr= np.arange(400,810,10 )
 	xr =np.delete(xr, 6)
 	peaks = np.delete(peaks,6)
+	peak_areas=np.delete(peak_areas,6)
 	plt.plot(xr, peaks,'o', ms=10,label='Peak Position of Cesium-137')
 	plt.tick_params(axis='both', which='major', labelsize=30)
 	plt.tick_params(axis='both', which='minor', labelsize=25)
 	plt.xlabel('Voltage',size=40)
 	plt.ylabel('Peak Position',size=40)
 	plt.legend(loc=2,fontsize=25)
-
-	quad_0,quad_1, quad_2=linleastsquares_general([xr[15:],peaks[15:]],2)
-	peak_fit = ideal_quadfn(xr, quad_2,quad_1,quad_0)
-	plt.plot(xr,peak_fit,'--', label='fit')
 	plt.show()
-	return peaks
+	a6,a5,a4,a3,a2,a1,a0=np.polyfit(xr[-24:],peaks[-24:],6)
+
+	fit6=a0+a1*xr[-24:]+a2*xr[-24:]**2+a3*xr[-24:]**3+a4*xr[-24:]**4+a5*xr[-24:]**5+a6*xr[-24:]**6
+	a5,a4,a3,a2,a1,a0=np.polyfit(xr[-24:],peaks[-24:],5)
+	fit5=a0+a1*xr[-24:]+a2*xr[-24:]**2+a3*xr[-24:]**3+a4*xr[-24:]**4+a5*xr[-24:]**5
+	a4,a3,a2,a1,a0=np.polyfit(xr[-24:],peaks[-24:],4)
+	fit4=a0+a1*xr[-24:]+a2*xr[-24:]**2+a3*xr[-24:]**3+a4*xr[-24:]**4
+	a3,a2,a1,a0=np.polyfit(xr[-24:],peaks[-24:],3)
+	fit3=a0+a1*xr[-24:]+a2*xr[-24:]**2+a3*xr[-24:]**3
+
+	a2,a1,a0=np.polyfit(xr[-24:],peaks[-24:],2)
+	fit2=a0+a1*xr[-24:]+a2*xr[-24:]**2
+	print a0,a1,a2,a3
+	#peak_fit = ideal_quadfn(xr, a3_2,quad_1,quad_0)
+
+	plt.plot(xr[-24:], peaks[-24:],'o', ms=10,label='Peak Position of Cesium-137')
+	plt.plot(xr[-24:],fit6,'--', label='Sextic')
+	plt.plot(xr[-24:],fit5,'--', label='Quintic')
+	plt.plot(xr[-24:],fit4,'--', label='Quartic')
+
+	plt.plot(xr[-24:],fit3,'--', label='Cubic')
+	plt.plot(xr[-24:],fit2,'--', label='Quadratic')
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Voltage',size=40)
+	plt.ylabel('Peak Position',size=40)
+	plt.legend(loc=2, fontsize=25)
+
+	plt.show()
+	#now for residuals!
+	resid6= fit6- peaks[-24:]
+	resid5= fit5- peaks[-24:]
+	resid4= fit4- peaks[-24:]
+	resid3= fit3- peaks[-24:]
+	resid2= fit2- peaks[-24:]
+	plt.plot(xr[-24:],resid6, 'o',ms=10,label='Sextic Residuals')
+	plt.plot(xr[-24:],resid5,'o',ms=10, label='Quintic Residuals')
+	plt.plot(xr[-24:],resid4,'o',ms=10, label='Quartic Residuals')
+	plt.plot(xr[-24:],resid3,'o',ms=10, label='Cubic Residuals')
+	plt.plot(xr[-24:],resid2,'o',ms=10, label='Quadratic Residuals')
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Voltage',size=40)
+	plt.ylabel('Peak Positional Residual',size=40)
+	plt.legend(loc=2, fontsize=25)
+	plt.show()
+
+	
+	'''
+
+	plt.plot(xr, peak_areas)
+	print xr[-20]
+	a6,a5,a4,a3,a2,a1,a0=np.polyfit(xr[-21:],peak_areas[-21:],6)
+	fit=a0+a1*xr[-21:]+a2*xr[-21:]**2+a3*xr[-21:]**3+a4*xr[-21:]+a4*xr[-21:]**4+a5*xr[-21:]**5+a6*xr[-21:]**6
+	print a0,a1,a2,a3,a4,a5,a6	
+	#plt.xlim([600,810])
+	#plt.ylim([0,400])
+	plt.plot(xr[-21:], fit,'--',label='fit')
+	print fit
+	plt.xlabel('Voltage',size=40)
+	plt.ylabel('Peak Area at FWHM',size=40)
+	plt.show()
+	'''
+	return peaks,peak_areas
 
 #peakdat = plot_gain()
