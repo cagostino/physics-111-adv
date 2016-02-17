@@ -143,8 +143,22 @@ def ideal_quadfn(x,quad_2,quad_1,quad_0):
 	return quad_2*x**2+quad_1*x+quad_0
 def ideal_lin(x, m, c):
 	return x*m + c
-
+def fullwidth_half_max(peak, spec):
+	pix = spec[0]
+	intens = spec[1]
+	ran = np.arange(peak-15, peak+15)
+        full_wid = np.where(intens[ran] >= intens[peak]/2.)[0]
+	print intens[ran]
+	print intens[peak]
+	area = np.sum( intens[ran][full_wid]*(pix[1]-pix[0]))
+	print ran[full_wid]
+	width= pix[max(ran[full_wid])] - pix[min(ran[full_wid])] # prints the width of the peak
+	print 'width=', width
+	return width
 #spec_Na[0] = ideal_quadfn(spec_Na[0],quad_2,quad_1, quad_0)
+
+
+
 
 spec_Na_use = np.where(spec_Na[0] > 2.95)[0]
 spec_Na_x = spec_Na[0][spec_Na_use]
@@ -162,6 +176,14 @@ spec_cs_y = spec_Cs[1][np.where(spec_Cs[0] >3)]
 spec_cs_x = ideal_quadfn(spec_cs_x,quad_2,quad_1,quad_0)
 cent_Cs = ideal_quadfn(cent_Cs,quad_2,quad_1, quad_0)
 
+
+peak_x_na =  np.where(spec_Na[1][spec_Na_use] == max(spec_Na[1][spec_Na_use]))[0]
+peak_x_co =  np.where(spec_co_y == max(spec_co_y))[0]
+peak_x_cs =  np.where(spec_cs_y == max(spec_cs_y))[0]
+
+width_na = fullwidth_half_max(peak_x_na,[spec_Na_x,spec_Na[1][spec_Na_use]])
+width_co = fullwidth_half_max(peak_x_co,[spec_co_x, spec_co_y])
+width_cs= fullwidth_half_max(peak_x_cs,[spec_cs_x,spec_cs_y])
 #plotting
 def plot_cal():
 	fig = plt.figure()
@@ -205,18 +227,6 @@ def plot_cal():
 	plt.show()
 #plot_cal()
 
-def fullwidth_half_max(peak, spec):
-	pix = spec[0]
-	intens = spec[1]
-	ran = np.arange(peak-15, peak+15)
-        full_wid = np.where(intens[ran] >= intens[peak]/2.)[0]
-	print intens[ran]
-	print intens[peak]
-	area = np.sum( intens[ran][full_wid]*(pix[1]-pix[0]))
-	print ran[full_wid]
-	width= pix[max(ran[full_wid])] - pix[min(ran[full_wid])] # prints the width of the peak
-	print 'width=', width
-	return width
 def plot_inv_sq():
 	lstfil = ['02_03_2016_15_40_37.dat','02_03_2016_15_48_35.dat',
 	'02_03_2016_16_04_25.dat']#,'02_03_2016_16_24_24.dat']
@@ -427,5 +437,24 @@ def massattenuation():
 	plt.legend(fontsize=30)
 	plt.show()
 	return spec_max_cs,spec_max_na
+def massatt(mat,width,rat):
+	densities = {'lead':11.34,'cu':8.96,'al':2.7}
+	dens = densities[mat]
+	return -np.log(rat)/(dens*width)
+width_lead = [.155, .465, .775, 1.085]
+rat_lead = [0.71505376, 0.69175627,0.48924731,0.43369176]
+width_al=[1.5,2.54]
+rat_al=[0.81899642,0.70071685]
+rat_cu=[0.76523297,0.65949821,0.58602151]
+width_cu =[.639,.86,1.0]
+lead = [massatt('lead', width_lead[i], rat_lead[i]) for i in range(len(width_lead))]
+al = [massatt('al', width_al[i], rat_al[i]) for i in range(len(width_al))]
+cu = [massatt('cu', width_cu[i], rat_cu[i]) for i in range(len(width_cu))]
+print 'std al', standdev(al),standdev(al)/np.sqrt(3.)
+print 'std lead', standdev(lead), standdev(lead)/np.sqrt(4.)
+print 'std cu', standdev(cu),standdev(cu)/np.sqrt(3.)
+print 'mean al', np.mean(al)
+print 'mean lead', np.mean(lead)
+print 'mean cu', np.mean(cu)
 
 #peakdat = plot_gain()
