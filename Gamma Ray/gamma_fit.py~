@@ -178,7 +178,7 @@ def plot_cal():
 	plt.xlim([0,1.5])
 	ax2 = fig.add_subplot(132)
 	plt.plot(spec_cs_x,spec_cs_y,label='Cesium')
-	#plt.xlabel('Energy [MeV]', size=40)
+	plt.xlabel('Energy [MeV]', size=40)
 	#plt.ylabel('Intensity', size=40)
 	plt.axvline(x=cent_Cs[0], color='r',linestyle='--',label='Cesium-137 Peak')
 
@@ -191,7 +191,7 @@ def plot_cal():
 	
 	ax3 = fig.add_subplot(133)
 	plt.plot(spec_co_x,spec_co_y,label='Cobalt')
-	plt.xlabel('Energy [MeV]', size=40)
+	#plt.xlabel('Energy [MeV]', size=40)
 	#plt.ylabel('Intensity', size=40)
 	plt.tick_params(axis='both', which='major', labelsize=30)
 	plt.tick_params(axis='both', which='minor', labelsize=25)
@@ -347,11 +347,85 @@ def doublepeak():
 	plt.tick_params(axis='both', which='minor', labelsize=25)
 	plt.xlabel('Bin',size=40)
 	plt.ylabel('Intensity[counts]',size=40)
+	plt.xlim([0,2])
 	plt.legend(fontsize=25)
 	
 	plt.show()
+def backgsub():
+	background = np.transpose(np.loadtxt('02_04_2016_15_23_04.dat',skiprows=2))
+	csspec= np.transpose(np.loadtxt('02_04_2016_13_44_43.dat', skiprows=2))
+	plt.plot(csspec[0], csspec[1],label='Cesium-137')
+	plt.plot(background[0], background[1],label='background')
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Bin',size=40)
+	plt.ylabel('Intensity[counts]',size=40)
+	plt.legend(fontsize=20)
+	plt.show()
+	peak_x= np.where(csspec[1] == max(csspec[1]))[0][0]
+	print peak_x
+	print csspec[1][peak_x]
+	binx = csspec[0][peak_x]
+	plt.plot(csspec[0], csspec[1]-background[1],label='Cesium-137')
+	#plt.axvline(x=binx,ls='--',label= 'Peak at bin '+str(binx)[0:4])
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Bin',size=40)
+	plt.ylabel('Intensity[counts]',size=40)
+	plt.legend(fontsize=20)
+	plt.show()
 
+def massattenuation():
+	csspec= np.transpose(np.loadtxt('02_04_2016_13_44_43.dat', skiprows=2))
+	background = np.transpose(np.loadtxt('02_04_2016_15_23_04.dat',skiprows=2))
+	aluminch = np.transpose(np.loadtxt('02_04_2016_13_50_19.dat',skiprows=2))
+	alum15mm = np.transpose(np.loadtxt('02_04_2016_13_56_09.dat',skiprows=2))
+	alum5mm = np.transpose(np.loadtxt('02_04_2016_14_41_27.dat',skiprows=2))
+	cu639 = np.transpose(np.loadtxt('02_04_2016_14_45_49.dat',skiprows=2))
+	cuall =np.transpose(np.loadtxt('02_04_2016_14_52_49.dat',skiprows=2))
+	cu63922 = np.transpose(np.loadtxt('02_04_2016_14_56_52.dat',skiprows=2))
+	pb155 =np.transpose(np.loadtxt('02_04_2016_15_04_22.dat',skiprows=2))
+	pb153 =np.transpose(np.loadtxt('02_04_2016_15_08_55.dat',skiprows=2))
+	pb151 = np.transpose(np.loadtxt('02_04_2016_15_13_11.dat',skiprows=2))
+	pb157=np.transpose(np.loadtxt('02_04_2016_15_17_30.dat',skiprows=2))
+	#now sodium stuff
+	naspec= np.transpose(np.loadtxt('02_04_2016_15_28_03.dat', skiprows=2))
+	aluminch2= np.transpose(np.loadtxt('02_04_2016_15_37_54.dat', skiprows=2))
+	alum15mm2= np.transpose(np.loadtxt('02_04_2016_16_02_20.dat', skiprows=2))
+	alum106mm2= np.transpose(np.loadtxt('02_04_2016_16_07_08.dat', skiprows=2))
+	cu6392= np.transpose(np.loadtxt('02_04_2016_16_15_41.dat', skiprows=2))
+	cu63922_2= np.transpose(np.loadtxt('02_04_2016_16_19_39.dat', skiprows=2))
+	cuall2= np.transpose(np.loadtxt('02_04_2016_16_23_53.dat', skiprows=2))
+	pb153_2= np.transpose(np.loadtxt('02_04_2016_16_31_53.dat', skiprows=2))
+	pb155_2 = np.transpose(np.loadtxt('02_04_2016_16_36_14.dat', skiprows=2))
+	pb157_2  = np.transpose(np.loadtxt('02_04_2016_16_40_18.dat', skiprows=2))
+	specs_cs = [csspec, aluminch, alum15mm, alum5mm, cu639, cuall, cu63922, pb155, pb153, pb151, pb157]
+	specs_na = [naspec, aluminch2, alum15mm2, alum106mm2, cu6392,cu63922_2, cuall2, pb153_2, pb155_2, pb157_2]
+	print len(specs_na)
+	labels_cs = ['Cesium', '2.54 cm  Al', '15 mm Al', '5 mm  Al', '6.39 mm Cu', '10 mm Cu', '8.6 mm Cu','7.75 cm Pb', '4.65 cm Pb', '1.55 cm Pb', '10.85 cm Pb']
 
+	labels_na = ['Sodium', '2.54 cm  Al', '15 mm Al', '1.06 mm  Al', '6.39 mm Cu', '8.6 mm Cu', '10 mm Cu', '4.65 cm Pb','7.75 cm Pb', '10.85 cm Pb']
+	print len(labels_na)
+	for i in range(len(specs_cs)):
+		plt.plot(specs_cs[i][0], specs_cs[i][1],label=labels_cs[i])
+	spec_max_cs = [max(specs_cs[i][1]) for i in range(len(specs_cs))]
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Bin',size=40)
+	plt.ylabel('Intensity[counts]',size=40)
+	plt.legend(fontsize=30)
 
+	plt.xlim([2.8, 3.2])
+	plt.show()
+	for i in range(len(specs_na)):
+		plt.plot(specs_na[i][0], specs_na[i][1],label=labels_na[i])
+	spec_max_na = [max(specs_na[i][1]) for i in range(len(specs_na))]
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Bin',size=40)
+	plt.ylabel('Intensity[counts]',size=40)
+	plt.legend(fontsize=30)
+	plt.show()
+	return spec_max_cs,spec_max_na
 
 #peakdat = plot_gain()
