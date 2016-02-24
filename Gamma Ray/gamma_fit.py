@@ -143,8 +143,22 @@ def ideal_quadfn(x,quad_2,quad_1,quad_0):
 	return quad_2*x**2+quad_1*x+quad_0
 def ideal_lin(x, m, c):
 	return x*m + c
-
+def fullwidth_half_max(peak, spec):
+	pix = spec[0]
+	intens = spec[1]
+	ran = np.arange(peak-15, peak+15)
+        full_wid = np.where(intens[ran] >= intens[peak]/2.)[0]
+	print intens[ran]
+	print intens[peak]
+	area = np.sum( intens[ran][full_wid]*(pix[1]-pix[0]))
+	print ran[full_wid]
+	width= pix[max(ran[full_wid])] - pix[min(ran[full_wid])] # prints the width of the peak
+	print 'width=', width
+	return width
 #spec_Na[0] = ideal_quadfn(spec_Na[0],quad_2,quad_1, quad_0)
+
+
+
 
 spec_Na_use = np.where(spec_Na[0] > 2.95)[0]
 spec_Na_x = spec_Na[0][spec_Na_use]
@@ -162,6 +176,14 @@ spec_cs_y = spec_Cs[1][np.where(spec_Cs[0] >3)]
 spec_cs_x = ideal_quadfn(spec_cs_x,quad_2,quad_1,quad_0)
 cent_Cs = ideal_quadfn(cent_Cs,quad_2,quad_1, quad_0)
 
+
+peak_x_na =  np.where(spec_Na[1][spec_Na_use] == max(spec_Na[1][spec_Na_use]))[0]
+peak_x_co =  np.where(spec_co_y == max(spec_co_y))[0]
+peak_x_cs =  np.where(spec_cs_y == max(spec_cs_y))[0]
+
+width_na = fullwidth_half_max(peak_x_na,[spec_Na_x,spec_Na[1][spec_Na_use]])
+width_co = fullwidth_half_max(peak_x_co,[spec_co_x, spec_co_y])
+width_cs= fullwidth_half_max(peak_x_cs,[spec_cs_x,spec_cs_y])
 #plotting
 def plot_cal():
 	fig = plt.figure()
@@ -178,7 +200,7 @@ def plot_cal():
 	plt.xlim([0,1.5])
 	ax2 = fig.add_subplot(132)
 	plt.plot(spec_cs_x,spec_cs_y,label='Cesium')
-	#plt.xlabel('Energy [MeV]', size=40)
+	plt.xlabel('Energy [MeV]', size=40)
 	#plt.ylabel('Intensity', size=40)
 	plt.axvline(x=cent_Cs[0], color='r',linestyle='--',label='Cesium-137 Peak')
 
@@ -191,7 +213,7 @@ def plot_cal():
 	
 	ax3 = fig.add_subplot(133)
 	plt.plot(spec_co_x,spec_co_y,label='Cobalt')
-	plt.xlabel('Energy [MeV]', size=40)
+	#plt.xlabel('Energy [MeV]', size=40)
 	#plt.ylabel('Intensity', size=40)
 	plt.tick_params(axis='both', which='major', labelsize=30)
 	plt.tick_params(axis='both', which='minor', labelsize=25)
@@ -205,18 +227,6 @@ def plot_cal():
 	plt.show()
 #plot_cal()
 
-def fullwidth_half_max(peak, spec):
-	pix = spec[0]
-	intens = spec[1]
-	ran = np.arange(peak-15, peak+15)
-        full_wid = np.where(intens[ran] >= intens[peak]/2.)[0]
-	print intens[ran]
-	print intens[peak]
-	area = np.sum( intens[ran][full_wid]*(pix[1]-pix[0]))
-	print ran[full_wid]
-	width= pix[max(ran[full_wid])] - pix[min(ran[full_wid])] # prints the width of the peak
-	print 'width=', width
-	return width
 def plot_inv_sq():
 	lstfil = ['02_03_2016_15_40_37.dat','02_03_2016_15_48_35.dat',
 	'02_03_2016_16_04_25.dat']#,'02_03_2016_16_24_24.dat']
@@ -351,8 +361,100 @@ def doublepeak():
 	plt.legend(fontsize=25)
 	
 	plt.show()
+def backgsub():
+	background = np.transpose(np.loadtxt('02_04_2016_15_23_04.dat',skiprows=2))
+	csspec= np.transpose(np.loadtxt('02_04_2016_13_44_43.dat', skiprows=2))
+	plt.plot(csspec[0], csspec[1],label='Cesium-137')
+	plt.plot(background[0], background[1],label='background')
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Bin',size=40)
+	plt.ylabel('Intensity[counts]',size=40)
+	plt.legend(fontsize=20)
+	plt.show()
+	peak_x= np.where(csspec[1] == max(csspec[1]))[0][0]
+	print peak_x
+	print csspec[1][peak_x]
+	binx = csspec[0][peak_x]
+	plt.plot(csspec[0], csspec[1]-background[1],label='Cesium-137')
+	#plt.axvline(x=binx,ls='--',label= 'Peak at bin '+str(binx)[0:4])
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Bin',size=40)
+	plt.ylabel('Intensity[counts]',size=40)
+	plt.legend(fontsize=20)
+	plt.show()
 
+def massattenuation():
+	csspec= np.transpose(np.loadtxt('02_04_2016_13_44_43.dat', skiprows=2))
+	background = np.transpose(np.loadtxt('02_04_2016_15_23_04.dat',skiprows=2))
+	aluminch = np.transpose(np.loadtxt('02_04_2016_13_50_19.dat',skiprows=2))
+	alum15mm = np.transpose(np.loadtxt('02_04_2016_13_56_09.dat',skiprows=2))
+	alum5mm = np.transpose(np.loadtxt('02_04_2016_14_41_27.dat',skiprows=2))
+	cu639 = np.transpose(np.loadtxt('02_04_2016_14_45_49.dat',skiprows=2))
+	cuall =np.transpose(np.loadtxt('02_04_2016_14_52_49.dat',skiprows=2))
+	cu63922 = np.transpose(np.loadtxt('02_04_2016_14_56_52.dat',skiprows=2))
+	pb155 =np.transpose(np.loadtxt('02_04_2016_15_04_22.dat',skiprows=2))
+	pb153 =np.transpose(np.loadtxt('02_04_2016_15_08_55.dat',skiprows=2))
+	pb151 = np.transpose(np.loadtxt('02_04_2016_15_13_11.dat',skiprows=2))
+	pb157=np.transpose(np.loadtxt('02_04_2016_15_17_30.dat',skiprows=2))
+	#now sodium stuff
+	naspec= np.transpose(np.loadtxt('02_04_2016_15_28_03.dat', skiprows=2))
+	aluminch2= np.transpose(np.loadtxt('02_04_2016_15_37_54.dat', skiprows=2))
+	alum15mm2= np.transpose(np.loadtxt('02_04_2016_16_02_20.dat', skiprows=2))
+	alum106mm2= np.transpose(np.loadtxt('02_04_2016_16_07_08.dat', skiprows=2))
+	cu6392= np.transpose(np.loadtxt('02_04_2016_16_15_41.dat', skiprows=2))
+	cu63922_2= np.transpose(np.loadtxt('02_04_2016_16_19_39.dat', skiprows=2))
+	cuall2= np.transpose(np.loadtxt('02_04_2016_16_23_53.dat', skiprows=2))
+	pb153_2= np.transpose(np.loadtxt('02_04_2016_16_31_53.dat', skiprows=2))
+	pb155_2 = np.transpose(np.loadtxt('02_04_2016_16_36_14.dat', skiprows=2))
+	pb157_2  = np.transpose(np.loadtxt('02_04_2016_16_40_18.dat', skiprows=2))
+	specs_cs = [csspec, aluminch, alum15mm, alum5mm, cu639, cuall, cu63922, pb155, pb153, pb151, pb157]
+	specs_na = [naspec, aluminch2, alum15mm2, alum106mm2, cu6392,cu63922_2, cuall2, pb153_2, pb155_2, pb157_2]
+	print len(specs_na)
+	labels_cs = ['Cesium', '2.54 cm  Al', '15 mm Al', '5 mm  Al', '6.39 mm Cu', '10 mm Cu', '8.6 mm Cu','7.75 mm Pb', '4.65 mm Pb', '1.55 mm Pb', '10.85 mm Pb']
 
+	labels_na = ['Sodium', '2.54 cm  Al', '15 mm Al', '1.06 mm  Al', '6.39 mm Cu', '8.6 mm Cu', '10 mm Cu', '4.65 cm Pb','7.75 cm Pb', '10.85 cm Pb']
+	print len(labels_na)
+	for i in range(len(specs_cs)):
+		plt.plot(specs_cs[i][0], specs_cs[i][1],label=labels_cs[i])
+	spec_max_cs = [max(specs_cs[i][1]) for i in range(len(specs_cs))]
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Bin',size=40)
+	plt.ylabel('Intensity[counts]',size=40)
+	plt.legend(fontsize=30)
 
+	plt.xlim([2.8, 3.2])
+	plt.show()
+	for i in range(len(specs_na)):
+		plt.plot(specs_na[i][0], specs_na[i][1],label=labels_na[i])
+	spec_max_na = [max(specs_na[i][1]) for i in range(len(specs_na))]
+	plt.tick_params(axis='both', which='major', labelsize=30)
+	plt.tick_params(axis='both', which='minor', labelsize=25)
+	plt.xlabel('Bin',size=40)
+	plt.ylabel('Intensity[counts]',size=40)
+	plt.legend(fontsize=30)
+	plt.show()
+	return spec_max_cs,spec_max_na
+def massatt(mat,width,rat):
+	densities = {'lead':11.34,'cu':8.96,'al':2.7}
+	dens = densities[mat]
+	return -np.log(rat)/(dens*width)
+width_lead = [.155, .465, .775, 1.085]
+rat_lead = [0.71505376, 0.69175627,0.48924731,0.43369176]
+width_al=[1.5,2.54]
+rat_al=[0.81899642,0.70071685]
+rat_cu=[0.76523297,0.65949821,0.58602151]
+width_cu =[.639,.86,1.0]
+lead = [massatt('lead', width_lead[i], rat_lead[i]) for i in range(len(width_lead))]
+al = [massatt('al', width_al[i], rat_al[i]) for i in range(len(width_al))]
+cu = [massatt('cu', width_cu[i], rat_cu[i]) for i in range(len(width_cu))]
+print 'std al', standdev(al),standdev(al)/np.sqrt(3.)
+print 'std lead', standdev(lead), standdev(lead)/np.sqrt(4.)
+print 'std cu', standdev(cu),standdev(cu)/np.sqrt(3.)
+print 'mean al', np.mean(al)
+print 'mean lead', np.mean(lead)
+print 'mean cu', np.mean(cu)
 
 #peakdat = plot_gain()
