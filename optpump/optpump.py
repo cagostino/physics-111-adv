@@ -20,15 +20,16 @@ m2, yint2=np.polyfit(current, freq_2,1)
 best1 = current*m1+yint1
 best2=current*m2 +yint2
 def data():
-	plt.plot(current, freq_1,'o',ms=10,label=r'$^{85}Rb$')
-	plt.plot(current, freq_2,'*', ms=10,label=r'$^{87}Rb$')
+	plt.plot(current, freq_1,'o',ms=20,label=r'$^{85}Rb$')
+	plt.plot(current, freq_2,'*', ms=20,label=r'$^{87}Rb$')
 	plt.plot(current, best1,'r')#, label='bestfit1')
 	plt.plot(current, best2,'g')#, label='bestfit2')
-	plt.legend(loc=2, fontsize=45)
-	plt.tick_params(axis='both', which='major', labelsize=20)
+	plt.legend(loc=2, fontsize=65)
+	plt.tick_params(axis='both', which='major', labelsize=45)
 	plt.tick_params(axis='both', which='minor', labelsize=15)
-	plt.xlabel('Current [A]',size=40)
-	plt.ylabel('Resonant Frequency [MHz]', size=40)
+	plt.xlabel('Current [A]',size=50)
+	plt.ylabel('Resonant Frequency [MHz]', size=50)
+	plt.xlim([-2.25,2.25])
 
 	plt.show()
 def resid():
@@ -47,6 +48,18 @@ def nucspin(m):
 	return i
 def earthfield(b,i):
 	return b*(2*i+1)/(2.799)
+def earthfield2(nuplus, numinus, I):
+	return  1./2 *( 2*I+1)*(nuplus-numinus)/27.99
+	
 print nucspin(m1)
 print nucspin(m2)
-print (earthfield(yint1, 5./2) + earthfield(yint2, 3./2))/2.
+earth1 =  earthfield(yint1, 5./2) 
+earth2 = earthfield(yint2, 3./2)
+earthf1 = earthfield2(freq_1[21:],freq_1[0:20], 5./2)
+earthf2 = earthfield2(freq_2[21:],freq_2[0:20], 3./2)
+print np.mean([earthf1,earthf2])
+print np.std([earthf1, earthf2],ddof=2)
+print np.std([earthf1, earthf2],ddof=2)/np.sqrt(40)
+# forty measurements, 2 degrees of freedom
+# mean of each
+
